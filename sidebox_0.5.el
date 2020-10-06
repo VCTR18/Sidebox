@@ -5,9 +5,13 @@
 ;; It doesn't reopen if you close it by any means, but if you change to another buffer
 ;; and return it will open again.
 ;; It's a feature worth introducing through customization though.
-;; Feature: Restart sidebox after turn off.
+
 
 ;;; Code:
+
+(require 'speedbar)
+(require 'minimap)
+(require 'sr-speedbar)
 
 (dotimes (i 2) (sr-speedbar-toggle))
 
