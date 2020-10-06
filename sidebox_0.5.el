@@ -2,9 +2,9 @@
 ;;; Commentary:
 ;; The code below allows me to have minimap on top of a speedbar without interfering
 ;; on any other process.
-;; It doesn't reopen if you close it by any means, but if you change to another buffer
-;; and return it will open again.
-;; It's a feature worth introducing through customization though.
+;; It can be turn off or on, you can customize the persistance in other cases
+;; It uses the width provided by minimap and the vertical relation between the components is
+;; customizable.
 
 
 ;;; Code:
@@ -12,7 +12,7 @@
 (require 'speedbar)
 (require 'minimap)
 (require 'sr-speedbar)
-
+  
 (dotimes (i 2) (sr-speedbar-toggle))
 
 (defvar sidebox-blacklist '(" *MINIMAP*" " *SPEEDBAR*" " *Minibuf-1*" " *Minibuf-0*"))
@@ -23,6 +23,19 @@
 (defvar sidebox-minimap-dead nil)
 (defvar sidebox-should-be-on-p nil)
 (defvar sidebox-first-time t)
+
+(defgroup sidebox nil
+  "Useful arrangement for minimap and speedbar"
+  :group 'convenience)
+
+(defcustom sidebox-vertical-relation 11
+  "Standard screen relation between minimap (top) and speedbar (bottom)."
+  :type 'number
+  :group 'sidebox)
+(defcustom sidebox-never-close nil
+  "Non-nil values means the window arrangement can only be killed through commands."
+  :type 'boolean
+  :group 'sidebox)
 
 (defun sidebox-main ()
   "Set speedbar below minimap."
@@ -38,7 +51,7 @@
   (when (derived-mode-p 'prog-mode)
     (minimap-create)
     (select-window (minimap-get-window))
-    (setq sidebox-lower-window (split-window-vertically 11))
+    (setq sidebox-lower-window (split-window-vertically sidebox-vertical-relation))
     (select-window sidebox-lower-window)
     (switch-to-buffer (get-buffer sr-speedbar-buffer-name))
     (goto-char (point-min))
@@ -57,13 +70,14 @@
   
   (unless (member (format "%s" sidebox-temporal-buffer) sidebox-blacklist)
     (if (eq sidebox-temporal-buffer sidebox-current-buffer)
-	(progn
-	  (when (and sidebox-should-be-on-p
-		     (null (get-buffer-window minimap-buffer-name)))
-	    (setq sidebox-current-buffer sidebox-temporal-buffer)
-	    (cancel-function-timers 'minimap-update))
-	  (when sidebox-first-time
-	    (setq sidebox-first-time nil)
+	(progn (when (and sidebox-should-be-on-p
+			  (null (get-buffer-window minimap-buffer-name)))
+		 (setq sidebox-current-buffer sidebox-temporal-buffer)
+		 (if (null sidebox-never-close)
+		     (cancel-function-timers 'minimap-update)
+		   (sidebox-main)))
+	       (when sidebox-first-time
+		 (setq sidebox-first-time nil)
 	    (sidebox-main)))
       (setq sidebox-current-buffer sidebox-temporal-buffer)
       (sidebox-main))))
@@ -95,6 +109,6 @@
 (global-set-key (kbd "C-ñ C-o") 'sidebox-off)
 
 
-(provide 'sidebox-main)
+(provide 'sidebox)
 
 ;;; sidebox_0.5.el ends here
