@@ -5,6 +5,7 @@
 ;; It can be turn off or on, you can customize the persistance in other cases
 ;; It uses the width provided by minimap and the vertical relation between the components is
 ;; customizable.
+;; Change the keyboard shortcuts for something more appropiate for you
 
 
 ;;; Code:
